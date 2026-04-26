@@ -1098,10 +1098,13 @@
             <div style="background:linear-gradient(135deg,#4361ee,#3b82f6); padding:20px 24px 16px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <h3 style="color:white; margin:0; font-size:1.1rem;"><i class="fas fa-history"></i> My Order History</h3>
-                        <p id="histBuyerLabel" style="color:rgba(255,255,255,0.8); font-size:0.78rem; margin:4px 0 0;"></p>
+                        <h3 style="color:white; margin:0; font-size:1.1rem;"><i class="fas fa-history"></i> My Order
+                            History</h3>
+                        <p id="histBuyerLabel" style="color:rgba(255,255,255,0.8); font-size:0.78rem; margin:4px 0 0;">
+                        </p>
                     </div>
-                    <i class="fas fa-times" onclick="closeModal('histModal')" style="color:white; font-size:1.2rem; cursor:pointer;"></i>
+                    <i class="fas fa-times" onclick="closeModal('histModal')"
+                        style="color:white; font-size:1.2rem; cursor:pointer;"></i>
                 </div>
             </div>
             <div class="modal-body" id="histList" style="max-height:70vh; overflow-y:auto; padding:16px;"></div>
@@ -1131,24 +1134,33 @@
                 <h2 style="color:white; font-size:1.4rem; margin:0;">Order Confirmed!</h2>
                 <p style="color:rgba(255,255,255,0.85); font-size:0.85rem; margin-top:4px;">Your food is on its way!</p>
             </div>
-            <div class="modal-body" id="successSummary" style="text-align:left; padding:16px 20px; max-height:200px; overflow-y:auto;"></div>
+            <div class="modal-body" id="successSummary"
+                style="text-align:left; padding:16px 20px; max-height:200px; overflow-y:auto;"></div>
 
             <!-- Rating Section -->
             <div style="padding:16px 24px 8px; border-top:1px solid #f1f5f9;">
-                <p style="font-weight:700; font-size:0.95rem; color:#1e293b; margin-bottom:10px;">⭐ How was your experience?</p>
+                <p style="font-weight:700; font-size:0.95rem; color:#1e293b; margin-bottom:10px;">⭐ How was your
+                    experience?</p>
                 <div id="ratingStars" style="display:flex; justify-content:center; gap:8px; margin-bottom:12px;">
-                    <i class="fas fa-star" data-val="1" onclick="selectRating(1)" style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
-                    <i class="fas fa-star" data-val="2" onclick="selectRating(2)" style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
-                    <i class="fas fa-star" data-val="3" onclick="selectRating(3)" style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
-                    <i class="fas fa-star" data-val="4" onclick="selectRating(4)" style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
-                    <i class="fas fa-star" data-val="5" onclick="selectRating(5)" style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
+                    <i class="fas fa-star" data-val="1" onclick="selectRating(1)"
+                        style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
+                    <i class="fas fa-star" data-val="2" onclick="selectRating(2)"
+                        style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
+                    <i class="fas fa-star" data-val="3" onclick="selectRating(3)"
+                        style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
+                    <i class="fas fa-star" data-val="4" onclick="selectRating(4)"
+                        style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
+                    <i class="fas fa-star" data-val="5" onclick="selectRating(5)"
+                        style="font-size:2rem; color:#e2e8f0; cursor:pointer; transition:0.2s;"></i>
                 </div>
                 <p id="ratingLabel" style="color:#94a3b8; font-size:0.82rem; min-height:18px;">Tap a star to rate</p>
             </div>
 
             <div class="modal-footer" style="padding:12px 20px 20px; display:flex; gap:10px;">
-                <button id="btnSkipRating" class="btn-block" onclick="closeSuccessModal()" style="background:#94a3b8; flex:1;">Skip</button>
-                <button id="btnSubmitRating" class="btn-block" onclick="submitOrderRating()" style="background:#10b981; flex:1; display:none;">Submit Rating ⭐</button>
+                <button id="btnSkipRating" class="btn-block" onclick="closeSuccessModal()"
+                    style="background:#94a3b8; flex:1;">Skip</button>
+                <button id="btnSubmitRating" class="btn-block" onclick="submitOrderRating()"
+                    style="background:#10b981; flex:1; display:none;">Submit Rating ⭐</button>
             </div>
         </div>
     </div>
@@ -1428,6 +1440,7 @@
             });
         }
 
+        let refreshTimer = null;
         async function listenToOffers() {
             if (!buyerId) return;
             console.log("Listening for offers for:", buyerId);
@@ -1443,32 +1456,41 @@
                 renderOffersFeed();
             }
 
-            // Realtime Sync
+            // Realtime Sync with Filter and Debounce
             supabaseClient.channel('private-offers')
-                .on('postgres_changes', { 
-                    event: '*', 
-                    schema: 'public', 
-                    table: 'buyer_offers' 
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'buyer_offers',
+                    filter: `buyerId=eq.${buyerId}`
                 }, async (payload) => {
-                    console.log("Offer change detected!", payload);
-                    
-                    // Fetch fresh data for this specific buyer
-                    const { data: refreshed } = await supabaseClient
-                        .from("buyer_offers")
-                        .select('*')
-                        .eq("buyerId", buyerId)
-                        .order("id", { ascending: false });
+                    console.log("Offer change detected!", payload.eventType);
 
-                    if (refreshed) {
-                        offersData = refreshed;
-                        renderOffersFeed();
-                        // Optional: Play a sound when a new offer arrives
-                        if(payload.eventType === 'INSERT') {
-                            const ping = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-                            ping.volume = 0.5;
-                            ping.play().catch(() => {});
+                    // DEBOUNCE: If many offers come at once (e.g. Send Full Catalog), 
+                    // we wait 300ms for more to arrive before refreshing the UI.
+                    if (refreshTimer) clearTimeout(refreshTimer);
+
+                    refreshTimer = setTimeout(async () => {
+                        const { data: refreshed } = await supabaseClient
+                            .from("buyer_offers")
+                            .select('*')
+                            .eq("buyerId", buyerId)
+                            .order("id", { ascending: false });
+
+                        if (refreshed) {
+                            offersData = refreshed;
+                            renderOffersFeed();
+
+                            // Only play sound if it was an insert event
+                            if (payload.eventType === 'INSERT') {
+                                try {
+                                    const ping = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+                                    ping.volume = 0.5;
+                                    ping.play().catch(() => { });
+                                } catch (e) { }
+                            }
                         }
-                    }
+                    }, 300);
                 })
                 .subscribe();
         }
@@ -1487,7 +1509,7 @@
                 // Locally remove from offersData so UI updates immediately (though realtime will also catch it)
                 offersData = offersData.filter(o => o.id != offerId);
                 renderOffersFeed();
-                
+
                 ActivityTracker.log(`Removed offer: ${offerId}`);
             } catch (err) {
                 console.error("Error deleting offer:", err);
@@ -2029,7 +2051,7 @@
                 let d = "Unknown Time";
                 try {
                     if (l.time) d = new Date(l.time).toLocaleString();
-                } catch(e) {}
+                } catch (e) { }
                 h += `
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
                         <div style="font-weight:600; color:#1e293b;">${l.action}</div>
@@ -2094,7 +2116,7 @@
 
             sortedGroups.forEach(g => {
                 let t = 'Unknown Date';
-                try { if (g.time) t = new Date(g.time).toLocaleString(); } catch(e) {}
+                try { if (g.time) t = new Date(g.time).toLocaleString(); } catch (e) { }
 
                 const groupTotal = g.items.reduce((sum, it) => sum + (it.total || 0), 0);
 
