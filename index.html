@@ -649,6 +649,26 @@
             background: #334155;
         }
 
+        .btn-delete-offer {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+        }
+
+        .btn-delete-offer:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+
         /* Modals */
         .overlay {
             position: fixed;
@@ -1453,6 +1473,28 @@
                 .subscribe();
         }
 
+        async function deleteOffer(offerId) {
+            if (!confirm("Are you sure you want to remove this offer? This action cannot be undone.")) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('buyer_offers')
+                    .delete()
+                    .eq('id', offerId);
+
+                if (error) throw error;
+
+                // Locally remove from offersData so UI updates immediately (though realtime will also catch it)
+                offersData = offersData.filter(o => o.id != offerId);
+                renderOffersFeed();
+                
+                ActivityTracker.log(`Removed offer: ${offerId}`);
+            } catch (err) {
+                console.error("Error deleting offer:", err);
+                alert("Failed to delete offer. Please try again.");
+            }
+        }
+
         function renderOfferCard(id, data) {
             const feed = document.getElementById('offersFeed');
 
@@ -1505,6 +1547,9 @@
                                     data-price="${currentDisplayPrice}"
                                     onclick="triggerAddToCart(this)">
                                 <i class="fas fa-cart-plus"></i> Add
+                            </button>
+                            <button class="btn-delete-offer" onclick="deleteOffer('${id}')" title="Hapus offer ini">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                     </div>
